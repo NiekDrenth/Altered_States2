@@ -3,6 +3,7 @@
 #Make the 5x5 grid by getting the input
 import numpy as np
 from collections import Counter
+import time
 #list of states
 state_populations = {
     "california": 39538223,
@@ -137,48 +138,155 @@ def get_start_position(grid, target):
         for y in range(len(grid)):
             if grid[x][y] == target:
                 start_pos.append([x,y])
+    
     return start_pos
 
 def king_move(grid, x, y, target):
     moves = []
     for i in range(x-1,x+2):
         for j in range(y-1,y+2):
-            if i>= 0 and i<len(grid) and j>=0 and j<len(grid) and (not (i==0 and j ==0)):
-                if grid[i][j] == target:
+            if i>= 0 and i<len(grid) and j>=0 and j<len(grid) and (not (i==x and j ==y)):
+                if grid[i][j] == target or target == '5':
                     moves.append([i,j])
-    return moves                
-        
-def recursiontest(grid, state, start_coordinate, i, start_string):
-    print("start string: ", start_string)
-    if start_string == state:
-        return True
     
+    return moves                
+
+def cords_not_visited(counter, grid_size):
+    list = []
+    for x in range(grid_size):
+        for y in range(grid_size):
+            if tuple([x,y]) not in counter:
+                list.append(tuple[x,y])
+    return list
+
+def recursiontest(grid, state, start_coordinate, i, start_string, joker):
+   
+    
+    if start_string == state:
+        cords_seen.append(tuple(start_coordinate))
+        return True
+
     else:
-        print("target letter:",state[i])
-        print("kingmove, grid, x, y, target", grid, start_coordinate[0], start_coordinate[1], state[i], king_move(grid,start_coordinate[0],start_coordinate[1],state[i]))
-        for cord in king_move(grid, start_coordinate[0], start_coordinate[1], state[i]):
-            start_string = start_string + state[i]
         
-                
-            print("Kingmove true", king_move(grid, start_coordinate[0], start_coordinate[1], state[i]))
-            i += 1
+        #print("looking for: ", state, start_coordinate, start_string)
+        
             
-            return recursiontest(grid,state,cord,i, start_string)
+        if (not king_move(grid, start_coordinate[0], start_coordinate[1], state[i])) == False:
+            start_string = start_string + state[i]
+            for cord in king_move(grid, start_coordinate[0], start_coordinate[1], state[i]):
+                
+              
 
-
+                if recursiontest(grid,state,cord,i+1, start_string, joker):
+                    cords_seen.append(tuple(cord))
+                    return True
+        else:
+            if joker:
+               
+                start_string = start_string + state[i]
+                for cord in king_move(grid, start_coordinate[0], start_coordinate[1], '5'):
+                 
+                    
+                    if recursiontest(grid,state,cord,i+1, start_string, False):
+                        cords_seen.append(tuple(cord))
+                        return True
+                    
+        if joker:
+            for cord in king_move(grid, start_coordinate[0], start_coordinate[1], '5'):
+                 
+                    
+                    if recursiontest(grid,state,cord,i+1, start_string, False):
+                        cords_seen.append(tuple(cord))
+                        return True
+       
+                
+            
+            
+def missing_states(list_states):
+    missing_states = {}
+    for state, population in state_populations.items():
+        if state not in list_states:
+            missing_states.update({state: population})
+        
+    return sorted(missing_states.items(), key=lambda item: item[1], reverse=True)
 
 def find_all_states(grid):
     possible_states = possible_states_in_grid(grid)
     grid = string_to_2d_array(grid)
     all_states = []
+    
     for state in possible_states:
+        
+        if not get_start_position(grid, state[0]):
+            state_alt = state[1:]
+            for coords in get_start_position(grid, state_alt[0]):
+                if recursiontest(grid, state_alt, coords,1, state_alt[0], False):
+                    cords_seen.append(tuple(coords))
+                    all_states.append(state)
+                    break
         for coords in get_start_position(grid, state[0]):
-            if recursiontest(grid, state, coords,1, state[0]):
+            if recursiontest(grid, state, coords,1, state[0], True):
                 all_states.append(state)
+                cords_seen.append(tuple(coords))
+                break
+        state_alt = state[1:]
+        if state not in all_states:
+            for coords in get_start_position(grid, state_alt[0]):
+                if recursiontest(grid, state_alt, coords,1, state_alt[0], False):
+                    cords_seen.append(tuple(coords))
+                    all_states.append(state)
+                    break
 
     return all_states
+def print_output(grid):
+    print("--------------")
+    print("score", get_total_population(find_all_states(grid)), find_all_states(grid))
+    print("-------------")
+    print("largest missing states:", missing_states(find_all_states(grid)))
+def joker(grid, state):
+    altered_state = []
+    for c in list(state):
+        return
+    
+def replace_chars_with_x(s):
+    result = []
+    for i in range(len(s)):
+        # Replace the i-th character with 'x'
+        new_string = s[:i] + 'x' + s[i+1:]
+        result.append(new_string)
+    return result
            
 st = 'aaska'
-print(find_all_states('codhclutaniorkssnabodietl'))
+start_time = time.time()
+cords_seen = []
+
+
+# print("--- %s seconds ---" % (time.time() - start_time))
+# print("score", get_total_population(find_all_states('akweolyhmnaiodaxefritlogn')), find_all_states('akweolyhmnaiodaxefritlogn'))
+# counter = {}
+
+# print("largest missing states:", missing_states(find_all_states('akweolyhmnaiodaxefritlogn')))
 #print("test the recursion:", recursiontest(string_to_2d_array(), 'alaska',[0,0],1, 'a'))
-print(possible_states_in_grid('pennsylvanagdeflkjndfhkjljfdghbg'), get_total_population(possible_states_in_grid('pennsylvanagfdghbg')))
+
+
+
+
+print_output("marogntseiasewalinyhforku")
+counter = {}
+list_cords = []
+for x in range(5):
+        for y in range(5):
+            list_cords.append(tuple([x,y]))
+for cord in cords_seen: 
+    if cord not in counter:
+        counter[cord] = 0
+    counter[cord] += 1
+print(counter)
+
+
+for x in range(5):
+        for y in range(5):
+            if tuple([x,y]) in cords_seen:
+                if counter[tuple([x,y])] == 3:
+                    print([x,y])
+# getest: marogntseiasejalinwdforka, clfrgaionikrsnadweaeayetx
