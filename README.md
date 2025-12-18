@@ -1,4 +1,4 @@
-[Grid](jane_street_june_24.png)
+![Grid](jane_street_june_24.png)
 
 A little while ago we asked solvers to smoosh as many of the 50 U.S. states into a 5-by-5 grid as possible.
 
